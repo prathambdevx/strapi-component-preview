@@ -17,11 +17,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/prathambdevx/strapi-preview.git"
+    "url": "git+https://github.com/prathambdevx/strapi-component-preview.git"
   },
-  "homepage": "https://github.com/prathambdevx/strapi-preview#readme",
+  "homepage": "https://github.com/prathambdevx/strapi-component-preview#readme",
   "bugs": {
-    "url": "https://github.com/prathambdevx/strapi-preview/issues"
+    "url": "https://github.com/prathambdevx/strapi-component-preview/issues"
   },
   "main": "./strapi-server.js",
   "exports": {
