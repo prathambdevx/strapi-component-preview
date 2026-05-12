@@ -1,4 +1,4 @@
-# @devx-labs/strapi-plugin-preview
+# @devx-labs/strapi-preview
 
 A Strapi 5 plugin that adds a **preview image URL** field to any component and renders all component previews as a side panel in the edit view.
 
@@ -7,14 +7,25 @@ Component authors set the image URL once in the Content-Type Builder (no Media L
 ## Install
 
 ```bash
-npm install @devx-labs/strapi-plugin-preview
+npm install @devx-labs/strapi-preview
 # or
-yarn add @devx-labs/strapi-plugin-preview
+yarn add @devx-labs/strapi-preview
 # or
-bun add @devx-labs/strapi-plugin-preview
+bun add @devx-labs/strapi-preview
 ```
 
-Strapi auto-discovers the plugin — no `config/plugins.ts` entry required.
+Register the plugin in `config/plugins.ts` (Strapi only auto-discovers packages whose names start with `strapi-plugin-` — this one uses a scope, so an explicit entry is needed):
+
+```ts
+export default () => ({
+  'component-preview-image': {
+    enabled: true,
+    resolve: '@devx-labs/strapi-preview',
+  },
+});
+```
+
+The plugin's internal id is `component-preview-image` (that's why the key in the config object is `component-preview-image`, not `strapi-preview`). Don't change that key.
 
 Rebuild the admin:
 
