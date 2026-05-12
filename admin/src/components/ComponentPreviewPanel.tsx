@@ -1,9 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Box, Button, Flex, Typography } from '@strapi/design-system';
+import { Box, Button, Flex, Modal, Typography } from '@strapi/design-system';
 import type { PanelComponent } from '@strapi/content-manager/strapi-admin';
 import { unstable_useContentManagerContext } from '@strapi/content-manager/strapi-admin';
 import { useForm, useFetchClient } from '@strapi/strapi/admin';
 import { ExternalLink } from '@strapi/icons';
+import styled from 'styled-components';
+
+const PreviewModalContent = styled(Modal.Content)`
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+`;
 
 type SchemaAttribute = {
   type?: string;
@@ -16,7 +24,7 @@ type SchemaDefinition = {
   info?: { displayName?: string };
 };
 
-type PreviewOption = { name: string; url: string };
+type PreviewOption = { name: string; url: string; disableIframe?: boolean };
 
 type PreviewItem = {
   uid: string;
@@ -25,6 +33,7 @@ type PreviewItem = {
   previewName: string;
   count: number;
   tempKey?: string;
+  disableIframe?: boolean;
 };
 
 const collectPreviewItems = (
@@ -48,6 +57,7 @@ const collectPreviewItems = (
       previewName: opts.name,
       count: 1,
       tempKey,
+      disableIframe: opts.disableIframe,
     });
   };
 
@@ -184,18 +194,54 @@ export const ComponentPreviewPanel: PanelComponent = () => {
                     {item.uid}
                   </Typography>
                 </Box>
-                <Button
-                  variant="tertiary"
-                  size="S"
-                  tag="a"
-                  href={item.previewUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  endIcon={<ExternalLink />}
-                  style={{ flexShrink: 0 }}
-                >
-                  Open
-                </Button>
+                {item.disableIframe ? (
+                  <Button
+                    variant="tertiary"
+                    size="S"
+                    tag="a"
+                    href={item.previewUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    endIcon={<ExternalLink />}
+                    style={{ flexShrink: 0 }}
+                  >
+                    Open
+                  </Button>
+                ) : (
+                  <Modal.Root>
+                    <Modal.Trigger>
+                      <Button
+                        variant="tertiary"
+                        size="S"
+                        endIcon={<ExternalLink />}
+                        style={{ flexShrink: 0 }}
+                      >
+                        Open
+                      </Button>
+                    </Modal.Trigger>
+                    <PreviewModalContent>
+                      <Modal.Header>
+                        <Modal.Title>{item.previewName || item.displayName}</Modal.Title>
+                      </Modal.Header>
+                      <Modal.Body>
+                        <Box padding={4} background="neutral100" hasRadius style={{ height: '80vh' }}>
+                          <iframe
+                            src={item.previewUrl}
+                            title={item.previewName || item.displayName}
+                            width="100%"
+                            height="100%"
+                            style={{ border: 'none' }}
+                          />
+                        </Box>
+                      </Modal.Body>
+                      <Modal.Footer>
+                        <Modal.Close>
+                          <Button variant="tertiary">Close</Button>
+                        </Modal.Close>
+                      </Modal.Footer>
+                    </PreviewModalContent>
+                  </Modal.Root>
+                )}
               </Flex>
             </Flex>
           </Box>

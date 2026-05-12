@@ -36,6 +36,18 @@ export default {
               defaultMessage: 'Direct URL of the image to display in the preview panel',
             },
           },
+          {
+            name: 'options.disableIframe',
+            type: 'checkbox',
+            intlLabel: {
+              id: 'component-preview-image.options.disableIframe.label',
+              defaultMessage: 'Disable Iframe?',
+            },
+            description: {
+              id: 'component-preview-image.options.disableIframe.description',
+              defaultMessage: 'Disables iframe modal and opens the image in a new tab',
+            },
+          },
         ],
       },
     });
