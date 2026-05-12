@@ -14,18 +14,9 @@ yarn add @devx-labs/strapi-preview
 bun add @devx-labs/strapi-preview
 ```
 
-Register the plugin in `config/plugins.ts` (Strapi only auto-discovers packages whose names start with `strapi-plugin-` — this one uses a scope, so an explicit entry is needed):
+Strapi auto-discovers the plugin from `node_modules` on next boot — no `config/plugins.ts` entry required.
 
-```ts
-export default () => ({
-  'component-preview-image': {
-    enabled: true,
-    resolve: '@devx-labs/strapi-preview',
-  },
-});
-```
-
-The plugin's internal id is `component-preview-image` (that's why the key in the config object is `component-preview-image`, not `strapi-preview`). Don't change that key.
+> If you want to disable it or pass options later, the plugin's internal id is `component-preview-image` (set via `strapi.name`). Use that as the key in `config/plugins.ts`, e.g. `'component-preview-image': { enabled: false }`.
 
 Rebuild the admin:
 
