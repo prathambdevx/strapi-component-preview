@@ -1,5 +1,5 @@
 {
-  "name": "@devx-labs/strapi-preview",
+  "name": "@devx-labs/strapi-plugin-preview",
   "version": "1.0.0",
   "description": "Strapi 5 plugin that adds a preview-image custom field (configured per component in the Content-Type Builder with a direct image URL) and renders a side panel in the edit view showing each component's preview image in dynamic-zone order.",
   "keywords": [
