@@ -1,0 +1,56 @@
+{
+  "name": "@devx/strapi-preview",
+  "version": "1.0.0",
+  "description": "Strapi 5 plugin that adds a preview-image custom field (configured per component in the Content-Type Builder with a direct image URL) and renders a side panel in the edit view showing each component's preview image in dynamic-zone order.",
+  "keywords": [
+    "strapi",
+    "plugin",
+    "strapi-plugin",
+    "component-preview",
+    "preview-image",
+    "custom-field",
+    "side-panel"
+  ],
+  "author": {
+    "name": "Pratham Bhatia"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/prathambdevx/strapi-preview.git"
+  },
+  "homepage": "https://github.com/prathambdevx/strapi-preview#readme",
+  "bugs": {
+    "url": "https://github.com/prathambdevx/strapi-preview/issues"
+  },
+  "main": "./strapi-server.js",
+  "exports": {
+    "./strapi-admin": {
+      "import": "./strapi-admin.js",
+      "default": "./strapi-admin.js"
+    },
+    ".": "./strapi-server.js"
+  },
+  "files": [
+    "admin",
+    "server",
+    "strapi-admin.js",
+    "strapi-server.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "strapi": {
+    "name": "component-preview-image",
+    "displayName": "Strapi Preview",
+    "description": "Adds a preview-image custom field (URL configured in CTB) and an edit-view side panel that displays those images.",
+    "kind": "plugin"
+  },
+  "peerDependencies": {
+    "@strapi/content-manager": ">=5.0.0",
+    "@strapi/design-system": ">=2.0.0-0",
+    "@strapi/icons": ">=2.0.0-0",
+    "@strapi/strapi": ">=5.0.0",
+    "react": "^17.0.0 || ^18.0.0",
+    "react-dom": "^17.0.0 || ^18.0.0"
+  }
+}
