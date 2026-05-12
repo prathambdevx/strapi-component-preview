@@ -4,7 +4,7 @@ const CUSTOM_FIELD_KEY = 'plugin::component-preview-image.preview-image';
 
 export default ({ strapi }: { strapi: Core.Strapi }) => ({
   async getOptions(ctx: any) {
-    const result: Record<string, { name: string; url: string; disableIframe: boolean }> = {};
+    const result: Record<string, { name: string; url: string }> = {};
 
     for (const [uid, schema] of Object.entries(strapi.components as Record<string, any>)) {
       for (const attr of Object.values(schema.attributes as Record<string, any>)) {
@@ -12,7 +12,6 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
           result[uid] = {
             name: schema.info?.displayName || uid,
             url: attr.options.url,
-            disableIframe: Boolean(attr.options.disableIframe),
           };
           break;
         }
