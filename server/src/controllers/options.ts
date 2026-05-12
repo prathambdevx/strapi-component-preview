@@ -8,11 +8,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
 
     for (const [uid, schema] of Object.entries(strapi.components as Record<string, any>)) {
       for (const attr of Object.values(schema.attributes as Record<string, any>)) {
-        if (
-          attr.type === 'customField' &&
-          attr.customField === CUSTOM_FIELD_KEY &&
-          attr.options?.url
-        ) {
+        if (attr.customField === CUSTOM_FIELD_KEY && attr.options?.url) {
           result[uid] = {
             name: schema.info?.displayName || uid,
             url: attr.options.url,
