@@ -103,12 +103,24 @@ export const ComponentPreviewPanel: PanelComponent = () => {
     };
   }, []);
 
-  const previewItems = collectPreviewItems(
+  const rawItems = collectPreviewItems(
     values,
     contentType?.attributes,
     components as Record<string, SchemaDefinition>,
     optionsMap
   );
+
+  // Deduplicate: same component UID shown once with a count
+  const seen = new Map<string, PreviewItem>();
+  for (const item of rawItems) {
+    const existing = seen.get(item.uid);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      seen.set(item.uid, { ...item });
+    }
+  }
+  const previewItems = Array.from(seen.values());
 
   if (isCreatingEntry) {
     return {
@@ -169,9 +181,23 @@ export const ComponentPreviewPanel: PanelComponent = () => {
                 width="100%"
               >
                 <Box style={{ minWidth: 0, flex: 1 }}>
-                  <Typography variant="sigma" textColor="neutral800">
-                    {item.previewName || item.displayName}
-                  </Typography>
+                  <Flex alignItems="center" gap={2}>
+                    <Typography variant="sigma" textColor="neutral800">
+                      {item.previewName || item.displayName}
+                    </Typography>
+                    {item.count > 1 && (
+                      <Box
+                        background="primary100"
+                        hasRadius
+                        padding={1}
+                        style={{ minWidth: '20px', textAlign: 'center' }}
+                      >
+                        <Typography variant="sigma" textColor="primary600">
+                          ×{item.count}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Flex>
                   <Typography
                     variant="pi"
                     textColor="neutral600"
