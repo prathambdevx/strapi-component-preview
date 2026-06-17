@@ -15,7 +15,7 @@ export const PreviewImageInput = ({ attribute }: PreviewImageInputProps) => {
   if (!url) return null;
 
   return (
-    <Flex justifyContent="flex-end">
+    <Flex width="100%" justifyContent="flex-end">
       <LinkButton
         href={url}
         target="_blank"

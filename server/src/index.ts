@@ -9,6 +9,10 @@ export default {
       name: 'preview-image',
       plugin: PLUGIN_NAME,
       type: 'string',
+      // Force a full-width, non-resizable edit-view cell so the Preview button
+      // always sits on its own row (bottom-right). The string default is a
+      // resizable half-width cell, which floats the button to mid-row.
+      inputSize: { default: 12, isResizable: false },
     });
   },
 
