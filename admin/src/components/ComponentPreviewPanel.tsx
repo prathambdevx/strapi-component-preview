@@ -16,7 +16,9 @@ type SchemaDefinition = {
   info?: { displayName?: string };
 };
 
-type PreviewOption = { name: string; url: string };
+// `url` is the schema-level fallback thumbnail; `sourceField` is an optional
+// dot-path to the entry's own image so each instance previews its real content.
+type PreviewOption = { name: string; url?: string; sourceField?: string };
 
 type PreviewItem = {
   uid: string;
@@ -25,6 +27,45 @@ type PreviewItem = {
   previewName: string;
   count: number;
   tempKey?: string;
+};
+
+const BACKEND_URL =
+  (typeof window !== 'undefined' && (window as { strapi?: { backendURL?: string } }).strapi?.backendURL) ||
+  '';
+
+// Local-provider media URLs are root-relative; Shopify/S3 URLs are already absolute.
+const toAbsolute = (url: string): string => (url.startsWith('/') ? `${BACKEND_URL}${url}` : url);
+
+// Pull a usable image URL out of a media-ish value (media object, array of media, or a raw string).
+const extractUrl = (value: unknown): string | undefined => {
+  if (!value) return undefined;
+  if (typeof value === 'string') return value;
+  if (Array.isArray(value)) {
+    for (const entry of value) {
+      const url = extractUrl(entry);
+      if (url) return url;
+    }
+    return undefined;
+  }
+  if (typeof value === 'object') {
+    const url = (value as { url?: unknown }).url;
+    if (typeof url === 'string') return url;
+  }
+  return undefined;
+};
+
+// Walk a dot-path (numeric segments index into arrays) on the instance to its image URL.
+const resolveInstanceImageUrl = (instance: unknown, sourceField?: string): string | undefined => {
+  if (!sourceField || !instance || typeof instance !== 'object') return undefined;
+
+  let current: unknown = instance;
+  for (const segment of sourceField.split('.')) {
+    if (current == null || typeof current !== 'object') return undefined;
+    current = (current as Record<string, unknown>)[segment];
+  }
+
+  const url = extractUrl(current);
+  return url ? toAbsolute(url) : undefined;
 };
 
 const collectPreviewItems = (
@@ -37,14 +78,17 @@ const collectPreviewItems = (
 
   if (!value || !attributes || typeof value !== 'object') return items;
 
-  const pushItem = (componentUid: string, tempKey?: string) => {
+  const pushItem = (componentUid: string, instance?: unknown, tempKey?: string) => {
     const opts = optionsMap[componentUid];
     if (!opts) return;
+    // Prefer the instance's own uploaded image; fall back to the schema thumbnail.
+    const previewUrl = resolveInstanceImageUrl(instance, opts.sourceField) ?? opts.url;
+    if (!previewUrl) return;
     const schema = componentSchemas[componentUid];
     items.push({
       uid: componentUid,
       displayName: schema?.info?.displayName ?? componentUid,
-      previewUrl: opts.url,
+      previewUrl,
       previewName: opts.name,
       count: 1,
       tempKey,
@@ -60,7 +104,7 @@ const collectPreviewItems = (
         if (!item || typeof item !== 'object') continue;
         const componentUid = (item as { __component?: string }).__component;
         const tempKey = (item as { __temp_key__?: string }).__temp_key__;
-        if (componentUid) pushItem(componentUid, tempKey);
+        if (componentUid) pushItem(componentUid, item, tempKey);
       }
       continue;
     }
@@ -70,10 +114,10 @@ const collectPreviewItems = (
       if (attribute.repeatable && Array.isArray(attributeValue)) {
         for (let i = 0; i < attributeValue.length; i++) {
           const item = attributeValue[i] as { __temp_key__?: string } | undefined;
-          pushItem(componentUid, item?.__temp_key__);
+          pushItem(componentUid, item, item?.__temp_key__);
         }
       } else {
-        pushItem(componentUid);
+        pushItem(componentUid, attributeValue);
       }
     }
   }
@@ -110,14 +154,16 @@ export const ComponentPreviewPanel: PanelComponent = () => {
     optionsMap
   );
 
-  // Deduplicate: same component UID shown once with a count
+  // Deduplicate by component + resolved image: identical previews collapse to a
+  // count, but instances with different uploaded images stay as separate cards.
   const seen = new Map<string, PreviewItem>();
   for (const item of rawItems) {
-    const existing = seen.get(item.uid);
+    const key = `${item.uid}::${item.previewUrl}`;
+    const existing = seen.get(key);
     if (existing) {
       existing.count += 1;
     } else {
-      seen.set(item.uid, { ...item });
+      seen.set(key, { ...item });
     }
   }
   const previewItems = Array.from(seen.values());
