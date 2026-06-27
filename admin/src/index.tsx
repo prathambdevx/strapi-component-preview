@@ -33,24 +33,23 @@ export default {
             },
             description: {
               id: 'component-preview-image.options.url.description',
-              defaultMessage:
-                'Fallback image shown in the preview panel when no instance image is found',
+              defaultMessage: 'URL for component screenshot',
             },
           },
           {
-            name: 'options.sourceField',
-            type: 'text',
+            name: 'options.isBanner',
+            type: 'checkbox',
             intlLabel: {
-              id: 'component-preview-image.options.sourceField.label',
-              defaultMessage: 'Instance image path (optional)',
+              id: 'component-preview-image.options.isBanner.label',
+              defaultMessage: 'Banner component',
             },
             description: {
-              id: 'component-preview-image.options.sourceField.description',
-              defaultMessage:
-                "Dot-path to the entry's own image, e.g. media.desktop or slides.0.media.desktop. When set, each instance previews its uploaded image and falls back to the URL above.",
+              id: 'component-preview-image.options.isBanner.description',
+              defaultMessage: 'Auto detects uploaded banner image — no need to fill Preview Image URL (only for banner components)',
             },
           },
         ],
+        advanced: [],
       },
     });
   },

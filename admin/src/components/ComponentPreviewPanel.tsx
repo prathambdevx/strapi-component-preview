@@ -4,21 +4,15 @@ import type { PanelComponent } from '@strapi/content-manager/strapi-admin';
 import { unstable_useContentManagerContext } from '@strapi/content-manager/strapi-admin';
 import { useForm, useFetchClient } from '@strapi/strapi/admin';
 import { ExternalLink } from '@strapi/icons';
+import {
+  type SchemaAttribute,
+  type SchemaDefinition,
+  toAbsolute,
+  resolveInstanceImageUrl,
+  autoDetectImageUrl,
+} from '../utils/preview';
 
-type SchemaAttribute = {
-  type?: string;
-  component?: string;
-  repeatable?: boolean;
-};
-
-type SchemaDefinition = {
-  attributes?: Record<string, SchemaAttribute>;
-  info?: { displayName?: string };
-};
-
-// `url` is the schema-level fallback thumbnail; `sourceField` is an optional
-// dot-path to the entry's own image so each instance previews its real content.
-type PreviewOption = { name: string; url?: string; sourceField?: string };
+type PreviewOption = { name: string; url?: string; sourceField?: string; isBanner?: boolean };
 
 type PreviewItem = {
   uid: string;
@@ -27,45 +21,6 @@ type PreviewItem = {
   previewName: string;
   count: number;
   tempKey?: string;
-};
-
-const BACKEND_URL =
-  (typeof window !== 'undefined' && (window as { strapi?: { backendURL?: string } }).strapi?.backendURL) ||
-  '';
-
-// Local-provider media URLs are root-relative; Shopify/S3 URLs are already absolute.
-const toAbsolute = (url: string): string => (url.startsWith('/') ? `${BACKEND_URL}${url}` : url);
-
-// Pull a usable image URL out of a media-ish value (media object, array of media, or a raw string).
-const extractUrl = (value: unknown): string | undefined => {
-  if (!value) return undefined;
-  if (typeof value === 'string') return value;
-  if (Array.isArray(value)) {
-    for (const entry of value) {
-      const url = extractUrl(entry);
-      if (url) return url;
-    }
-    return undefined;
-  }
-  if (typeof value === 'object') {
-    const url = (value as { url?: unknown }).url;
-    if (typeof url === 'string') return url;
-  }
-  return undefined;
-};
-
-// Walk a dot-path (numeric segments index into arrays) on the instance to its image URL.
-const resolveInstanceImageUrl = (instance: unknown, sourceField?: string): string | undefined => {
-  if (!sourceField || !instance || typeof instance !== 'object') return undefined;
-
-  let current: unknown = instance;
-  for (const segment of sourceField.split('.')) {
-    if (current == null || typeof current !== 'object') return undefined;
-    current = (current as Record<string, unknown>)[segment];
-  }
-
-  const url = extractUrl(current);
-  return url ? toAbsolute(url) : undefined;
 };
 
 const collectPreviewItems = (
@@ -81,9 +36,19 @@ const collectPreviewItems = (
   const pushItem = (componentUid: string, instance?: unknown, tempKey?: string) => {
     const opts = optionsMap[componentUid];
     if (!opts) return;
-    // Prefer the instance's own uploaded image; fall back to the schema thumbnail.
-    const previewUrl = resolveInstanceImageUrl(instance, opts.sourceField) ?? opts.url;
+
+    let instanceUrl: string | undefined;
+
+    if (opts.sourceField) {
+      // Explicit dot-path overrides everything
+      instanceUrl = resolveInstanceImageUrl(instance, opts.sourceField);
+    } else if (opts.isBanner) {
+      instanceUrl = autoDetectImageUrl(instance, componentUid, componentSchemas);
+    }
+
+    const previewUrl = (instanceUrl ? toAbsolute(instanceUrl) : undefined) ?? opts.url;
     if (!previewUrl) return;
+
     const schema = componentSchemas[componentUid];
     items.push({
       uid: componentUid,
@@ -154,8 +119,6 @@ export const ComponentPreviewPanel: PanelComponent = () => {
     optionsMap
   );
 
-  // Deduplicate by component + resolved image: identical previews collapse to a
-  // count, but instances with different uploaded images stay as separate cards.
   const seen = new Map<string, PreviewItem>();
   for (const item of rawItems) {
     const key = `${item.uid}::${item.previewUrl}`;
