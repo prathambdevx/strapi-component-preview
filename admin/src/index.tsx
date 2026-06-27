@@ -14,7 +14,7 @@ export default {
       intlDescription: {
         id: 'component-preview-image.preview-image.description',
         defaultMessage:
-          'Schema-level preview image — set the image URL once in the Content-Type Builder, shown in the edit-view side panel',
+          'Adds a preview image to your component — shown in the side panel while editing',
       },
       components: {
         Input: async () =>
